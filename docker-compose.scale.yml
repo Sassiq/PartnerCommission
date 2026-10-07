@@ -1,0 +1,7 @@
+# Several replicas can't share one host port, so it is dropped; traffic goes through the gateway.
+#   docker compose -f docker-compose.yml -f docker-compose.scale.yml up -d --scale commission=3 --scale wallet=2
+services:
+  commission:
+    ports: !reset []
+  wallet:
+    ports: !reset []
