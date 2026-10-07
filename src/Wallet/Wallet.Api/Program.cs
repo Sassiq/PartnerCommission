@@ -6,7 +6,6 @@ using PartnerCommission.ServiceDefaults;
 using Scalar.AspNetCore;
 using Serilog;
 using Wallet.Api.Data;
-using Wallet.Api.Endpoints;
 using Wallet.Api.Messaging;
 using Wallet.Api.Payouts;
 
@@ -37,8 +36,7 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<WalletDbContext>("postgres", tags: [ServiceDefaultsExtensions.ReadyTag])
     .AddKafkaHealthCheck(ServiceDefaultsExtensions.ReadyTag);
 
-builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-builder.Services.AddValidation();
+builder.Services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -55,7 +53,7 @@ app.UseStatusCodePages();
 app.MapDefaultEndpoints();
 app.MapOpenApi();
 app.MapScalarApiReference();
-app.MapWallets();
+app.MapControllers();
 
 await app.RunAsync();
 

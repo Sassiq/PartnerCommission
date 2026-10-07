@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using Commission.Api.Data;
-using Commission.Api.Endpoints;
 using Commission.Api.Messaging;
 using Commission.Api.Partners;
 using Microsoft.EntityFrameworkCore;
@@ -61,8 +60,7 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<CommissionDbContext>("postgres", tags: [ServiceDefaultsExtensions.ReadyTag])
     .AddKafkaHealthCheck(ServiceDefaultsExtensions.ReadyTag);
 
-builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-builder.Services.AddValidation();
+builder.Services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -79,8 +77,7 @@ app.UseStatusCodePages();
 app.MapDefaultEndpoints();
 app.MapOpenApi();
 app.MapScalarApiReference();
-app.MapEvents();
-app.MapAdmin();
+app.MapControllers();
 
 await app.RunAsync();
 

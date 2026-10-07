@@ -2,7 +2,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Partners.Api.Data;
-using Partners.Api.Endpoints;
 using Partners.Api.GrpcServices;
 using PartnerCommission.ServiceDefaults;
 using Scalar.AspNetCore;
@@ -20,9 +19,8 @@ builder.Services.AddScoped<TreeQueries>();
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<PartnersDbContext>("postgres", tags: [ServiceDefaultsExtensions.ReadyTag]);
 
-builder.Services.ConfigureHttpJsonOptions(o =>
-    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
-builder.Services.AddValidation();
+builder.Services.AddControllers().AddJsonOptions(o =>
+    o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)));
 builder.Services.AddOpenApi();
 builder.Services.AddGrpc();
 
@@ -40,7 +38,7 @@ app.UseStatusCodePages();
 app.MapDefaultEndpoints();
 app.MapOpenApi();
 app.MapScalarApiReference();
-app.MapUsers();
+app.MapControllers();
 app.MapGrpcService<PartnersInternalService>();
 
 await app.RunAsync();

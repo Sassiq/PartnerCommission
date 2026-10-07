@@ -1,7 +1,7 @@
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using Partners.Api.Data;
-using Partners.Api.Endpoints;
+using Partners.Api.Controllers;
 using PartnerCommission.Contracts.Partners;
 
 namespace Partners.Api.GrpcServices;
@@ -16,10 +16,10 @@ public sealed class PartnersInternalService(TreeQueries tree, PartnersDbContext 
             throw new RpcException(new Status(StatusCode.InvalidArgument, "user_external_id is required."));
         }
 
-        if (request.MaxLevels is < 1 or > UsersEndpoints.MaxTreeDepth)
+        if (request.MaxLevels is < 1 or > UsersController.MaxTreeDepth)
         {
             throw new RpcException(new Status(
-                StatusCode.InvalidArgument, $"max_levels must be between 1 and {UsersEndpoints.MaxTreeDepth}."));
+                StatusCode.InvalidArgument, $"max_levels must be between 1 and {UsersController.MaxTreeDepth}."));
         }
 
         var ancestors = await tree.GetAncestorsAsync(request.UserExternalId, request.MaxLevels, context.CancellationToken);
