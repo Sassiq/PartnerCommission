@@ -39,9 +39,9 @@ public class RetryPolicyTests
 
     public static TheoryData<Exception> InfrastructureFailures => new()
     {
-        new FakeDbException(isTransient: true),                                              // database says: temporary
-        new InvalidOperationException("EF wrapper", new FakeDbException(isTransient: true)), // EF Core wraps the real error
-        new InvalidOperationException("outer", new IOException("io", new SocketException())),// network, deep in the chain
+        new FakeDbException(isTransient: true),
+        new InvalidOperationException("EF wrapper", new FakeDbException(isTransient: true)),
+        new InvalidOperationException("outer", new IOException("io", new SocketException())),
         new SocketException(),
         new TimeoutException()
     };
@@ -56,9 +56,9 @@ public class RetryPolicyTests
 
     public static TheoryData<Exception> OrdinaryFailures => new()
     {
-        new NullReferenceException(),                                                          // a bug
+        new NullReferenceException(),
         new InvalidOperationException("plain"),
-        new FakeDbException(isTransient: false),                                               // e.g. constraint violation
+        new FakeDbException(isTransient: false),
         new InvalidOperationException("wrapped", new FakeDbException(isTransient: false))
     };
 
@@ -99,7 +99,7 @@ public class RetryPolicyTests
     [Fact]
     public void Jitter_keeps_delay_between_half_and_full()
     {
-        Policy(jitter: 0.0).DelayFor(3).TotalSeconds.ShouldBe(2);  // half of 4 s
-        Policy(jitter: 1.0).DelayFor(3).TotalSeconds.ShouldBe(4);  // full 4 s
+        Policy(jitter: 0.0).DelayFor(3).TotalSeconds.ShouldBe(2);
+        Policy(jitter: 1.0).DelayFor(3).TotalSeconds.ShouldBe(4);
     }
 }

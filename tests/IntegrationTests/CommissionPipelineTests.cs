@@ -114,7 +114,7 @@ public sealed class CommissionPipelineTests(PostgresFixture postgres) : IAsyncLi
     [Fact]
     public async Task Simultaneous_delivery_of_the_same_event_is_accrued_once()
     {
-        // Two consumers handle the same event at the same moment (e.g. the API accepted it twice onto different partitions).
+        // several consumers handle the same event at the same moment
         await Task.WhenAll(Enumerable.Range(0, 4).Select(async _ =>
         {
             await using var db = NewDb();

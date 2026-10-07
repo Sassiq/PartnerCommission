@@ -11,12 +11,10 @@ public class PartnerLinkGuardTests
 
     [Fact]
     public void Direct_cycle_is_rejected() =>
-        // b already refers to a (so a is b's ancestor); making a refer to b would close the loop.
         Should.Throw<InvalidPartnerLinkException>(() => PartnerLinkGuard.EnsureCanLink("a", "b", ["a"]));
 
     [Fact]
     public void Deep_cycle_is_rejected() =>
-        // "d" is a descendant of "user" (d's ancestors are c, then user); making d the partner of user closes the loop.
         Should.Throw<InvalidPartnerLinkException>(() => PartnerLinkGuard.EnsureCanLink("user", "d", ["c", "user"]));
 
     [Fact]

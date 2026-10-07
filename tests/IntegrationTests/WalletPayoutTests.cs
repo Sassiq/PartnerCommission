@@ -160,7 +160,7 @@ public sealed class WalletPayoutTests(PostgresFixture postgres) : IAsyncLifetime
     [Fact]
     public async Task Concurrent_payout_rounds_never_pay_a_commission_twice()
     {
-        // 5 users x 20 commissions, paid by 4 runners at the same time (like 4 service instances plus a manual trigger).
+        // 5 users x 20 commissions, paid by 4 runners at once
         var users = Enumerable.Range(1, 5).Select(i => $"user{i}").ToList();
         var accruals = users.SelectMany(u => Enumerable.Range(1, 20).Select(n => Accrual(u, n))).ToArray();
         await ReceiveAsync(accruals);
@@ -170,18 +170,15 @@ public sealed class WalletPayoutTests(PostgresFixture postgres) : IAsyncLifetime
 
         await using var db = NewDb();
 
-        // Money: every wallet holds exactly its commissions, once.
         var balances = await db.Wallets.ToDictionaryAsync(w => w.UserExternalId, w => w.Balance);
         balances.Keys.Order().ShouldBe(users.Order());
         balances.Values.ShouldAllBe(b => b == 210m);
         balances.Values.Sum().ShouldBe(expectedTotal);
 
-        // Bookkeeping: every accrual belongs to exactly one payout, and payouts add up to what was credited.
         (await db.Accruals.CountAsync(a => a.Status == AccrualStatus.Paid)).ShouldBe(accruals.Length);
         (await db.Payouts.SumAsync(p => p.Amount)).ShouldBe(expectedTotal);
         (await db.Payouts.SumAsync(p => p.CommissionCount)).ShouldBe(accruals.Length);
 
-        // One notification per payout, together naming every commission exactly once.
         var notifications = (await db.Set<OutboxMessage>().Select(m => m.Payload).ToListAsync())
             .Select(MessageSerializer.Deserialize<CommissionsPaid>).ToList();
         notifications.Count.ShouldBe(await db.Payouts.CountAsync());

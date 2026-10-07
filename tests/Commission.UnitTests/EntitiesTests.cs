@@ -31,8 +31,8 @@ public class EntitiesTests
     [InlineData("100", true)]
     [InlineData("-100.12345678", true)]
     [InlineData("0", true)]
-    [InlineData("0.123456789", false)]   // more than 8 decimals
-    [InlineData("1000000000000000000", false)] // does not fit numeric(28,8)
+    [InlineData("0.123456789", false)]
+    [InlineData("1000000000000000000", false)]
     public void Profit_must_fit_storage_precision(string value, bool expected) =>
         ProfitValidation.IsValid(decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture)).ShouldBe(expected);
 }

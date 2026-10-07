@@ -6,9 +6,7 @@ using Shouldly;
 namespace Commission.UnitTests;
 
 /// <summary>
-/// These enums are stored in the database as integers, so their numbers are part of the data format.
-/// Renumbering, reordering or inserting a member in the middle would silently change the meaning of stored rows.
-/// If one of these tests fails, the change needs a data migration, not just a new test value.
+/// Enums are stored as integers, so their numbers are part of the data format: changing them needs a data migration.
 /// </summary>
 public class EnumStorageTests
 {
