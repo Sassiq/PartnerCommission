@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.scale.yml" />
+    <File Path="docker-compose.yml" />
+    <File Path="README.md" />
+  </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Commission/">
     <Project Path="src/Commission/Commission.Api/Commission.Api.csproj" />
@@ -28,4 +33,3 @@
     <Project Path="tests/Wallet.UnitTests/Wallet.UnitTests.csproj" />
   </Folder>
 </Solution>
-
