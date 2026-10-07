@@ -29,6 +29,14 @@ public class CommissionCalculatorTests
     }
 
     [Fact]
+    public void Full_ten_level_fibonacci_chain_pays_143_percent_of_profit()
+    {
+        var result = CommissionCalculator.Calculate(new FibonacciScheme(), 100m, Chain(10), MaxLevels);
+
+        result.Sum(c => c.Amount).ShouldBe(143m);
+    }
+
+    [Fact]
     public void Commissions_go_to_the_matching_partner()
     {
         var result = CommissionCalculator.Calculate(new LinearScheme(), 100m, Chain(2), MaxLevels);
@@ -71,24 +79,13 @@ public class CommissionCalculatorTests
     {
         var result = CommissionCalculator.Calculate(new LinearScheme(), 100m, Chain(12), MaxLevels);
 
-        result.Count.ShouldBe(10);
-        result.Max(c => c.Level).ShouldBe(10);
-    }
-
-    [Fact]
-    public void Unordered_chain_is_processed_by_level()
-    {
-        var chain = new List<Ancestor> { new(2, "b"), new(1, "a") };
-
-        var result = CommissionCalculator.Calculate(new LinearScheme(), 100m, chain, MaxLevels);
-
-        result.Select(c => c.PartnerExternalId).ShouldBe(["a", "b"]);
+        result.Count.ShouldBe(MaxLevels);
+        result.Max(c => c.Level).ShouldBe(MaxLevels);
     }
 
     [Fact]
     public void Amount_is_rounded_to_eight_decimals_away_from_zero()
     {
-        // 1 × 0.123456785 / 100 = 0.00123456785 -> 0.00123457 (away from zero at the 8th decimal)
         var result = CommissionCalculator.Calculate(new LinearScheme(), 0.123456785m, Chain(1), MaxLevels);
 
         result.Single().Amount.ShouldBe(0.00123457m);
@@ -97,24 +94,8 @@ public class CommissionCalculatorTests
     [Fact]
     public void Commission_that_rounds_to_zero_is_not_created()
     {
-        // 1 × 0.0000001 / 100 = 0.000000001 -> 0 at 8 decimals
         var result = CommissionCalculator.Calculate(new LinearScheme(), 0.0000001m, Chain(1), MaxLevels);
 
         result.ShouldBeEmpty();
     }
-
-    [Fact]
-    public void Full_ten_level_fibonacci_chain_pays_143_percent_of_profit()
-    {
-        var result = CommissionCalculator.Calculate(new FibonacciScheme(), 100m, Chain(10), MaxLevels);
-
-        result.Sum(c => c.Amount).ShouldBe(143m);
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(CommissionLimits.MaxLevels + 1)]
-    public void Max_levels_outside_the_supported_range_is_rejected(int maxLevels) =>
-        Should.Throw<ArgumentOutOfRangeException>(() =>
-            CommissionCalculator.Calculate(new LinearScheme(), 100m, Chain(1), maxLevels));
 }

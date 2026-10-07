@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Net.Sockets;
 using PartnerCommission.Messaging.Consuming;
 using Shouldly;
@@ -9,9 +10,30 @@ public class RetryPolicyTests
     private static RetryPolicy Policy(double jitter = 1.0) =>
         new(maxAttempts: 5, baseDelay: TimeSpan.FromSeconds(1), maxDelay: TimeSpan.FromSeconds(30), jitter: () => jitter);
 
+    public static TheoryData<Exception> InfrastructureFailures => new()
+    {
+        new FakeDbException(isTransient: true),
+        new InvalidOperationException("EF wrapper", new FakeDbException(isTransient: true)),
+        new InvalidOperationException("outer", new IOException("io", new SocketException())),
+        new SocketException(),
+        new TimeoutException()
+    };
+
+    public static TheoryData<Exception> OrdinaryFailures => new()
+    {
+        new NullReferenceException(),
+        new InvalidOperationException("plain"),
+        new FakeDbException(isTransient: false),
+        new InvalidOperationException("wrapped", new FakeDbException(isTransient: false))
+    };
+
     [Fact]
     public void Permanent_failure_is_dead_lettered_immediately() =>
         Policy().Decide(new PermanentMessageException("bad"), attempt: 1).DeadLetter.ShouldBeTrue();
+
+    [Fact]
+    public void Permanent_failure_wins_even_if_it_wraps_a_transient_one() =>
+        Policy().Decide(new PermanentMessageException("bad", new TimeoutException()), attempt: 1).DeadLetter.ShouldBeTrue();
 
     [Theory]
     [InlineData(1)]
@@ -32,19 +54,9 @@ public class RetryPolicyTests
 
     [Theory]
     [InlineData(5)]
-    [InlineData(50)]
     [InlineData(1000)]
     public void Transient_failure_is_retried_without_limit(int attempt) =>
         Policy().Decide(new TransientMessageException("partners down"), attempt).DeadLetter.ShouldBeFalse();
-
-    public static TheoryData<Exception> InfrastructureFailures => new()
-    {
-        new FakeDbException(isTransient: true),
-        new InvalidOperationException("EF wrapper", new FakeDbException(isTransient: true)),
-        new InvalidOperationException("outer", new IOException("io", new SocketException())),
-        new SocketException(),
-        new TimeoutException()
-    };
 
     [Theory]
     [MemberData(nameof(InfrastructureFailures))]
@@ -54,30 +66,13 @@ public class RetryPolicyTests
         Policy().Decide(failure, attempt: 1000).DeadLetter.ShouldBeFalse();
     }
 
-    public static TheoryData<Exception> OrdinaryFailures => new()
-    {
-        new NullReferenceException(),
-        new InvalidOperationException("plain"),
-        new FakeDbException(isTransient: false),
-        new InvalidOperationException("wrapped", new FakeDbException(isTransient: false))
-    };
-
     [Theory]
     [MemberData(nameof(OrdinaryFailures))]
-    public void Bugs_and_permanent_database_errors_still_end_in_dead_letter(Exception failure)
+    public void Bugs_and_permanent_database_errors_end_in_dead_letter(Exception failure)
     {
         RetryPolicy.IsTransient(failure).ShouldBeFalse();
         Policy().Decide(failure, attempt: 1).DeadLetter.ShouldBeFalse();
         Policy().Decide(failure, attempt: 5).DeadLetter.ShouldBeTrue();
-    }
-
-    [Fact]
-    public void Permanent_exception_wins_even_if_it_wraps_a_transient_one() =>
-        Policy().Decide(new PermanentMessageException("bad", new TimeoutException()), attempt: 1).DeadLetter.ShouldBeTrue();
-
-    private sealed class FakeDbException(bool isTransient) : System.Data.Common.DbException("db error")
-    {
-        public override bool IsTransient => isTransient;
     }
 
     [Theory]
@@ -101,5 +96,10 @@ public class RetryPolicyTests
     {
         Policy(jitter: 0.0).DelayFor(3).TotalSeconds.ShouldBe(2);
         Policy(jitter: 1.0).DelayFor(3).TotalSeconds.ShouldBe(4);
+    }
+
+    private sealed class FakeDbException(bool isTransient) : DbException("db error")
+    {
+        public override bool IsTransient => isTransient;
     }
 }

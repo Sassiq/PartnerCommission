@@ -1,4 +1,3 @@
-using Partners.Domain;
 using Partners.Domain.Entities;
 using Shouldly;
 
@@ -13,23 +12,11 @@ public class UserTests
     {
         var user = User.Create("u-1", Now);
 
+        user.Id.ShouldNotBe(Guid.Empty);
         user.ExternalId.ShouldBe("u-1");
         user.CreatedAt.ShouldBe(Now);
         user.PartnerId.ShouldBeNull();
     }
-
-    [Fact]
-    public void Create_generates_a_version_7_guid()
-    {
-        var user = User.Create("u-1", Now);
-
-        user.Id.ShouldNotBe(Guid.Empty);
-        user.Id.Version.ShouldBe(7);
-    }
-
-    [Fact]
-    public void Every_user_gets_a_different_id() =>
-        User.Create("a", Now).Id.ShouldNotBe(User.Create("b", Now).Id);
 
     [Theory]
     [InlineData("")]

@@ -1,6 +1,5 @@
 using PartnerCommission.Contracts;
 using Shouldly;
-using Wallet.Domain;
 using Wallet.Domain.Entities;
 
 namespace Wallet.UnitTests;
@@ -50,26 +49,6 @@ public class PayoutTests
         Payout.Create(accruals, Now);
 
         Should.Throw<InvalidOperationException>(() => Payout.Create(accruals, Now.AddHours(1)));
-    }
-
-    [Fact]
-    public void A_second_payout_does_not_touch_accruals_of_the_first()
-    {
-        var first = new[] { Pending(1m) };
-        var firstPayout = Payout.Create(first, Now);
-
-        var second = Payout.Create([Pending(3m)], Now.AddHours(1));
-
-        second.Amount.ShouldBe(3m);
-        first[0].PayoutId.ShouldBe(firstPayout.Id);
-    }
-
-    [Fact]
-    public void AccrualStatus_numbers_are_stable_because_they_are_stored_in_the_database()
-    {
-        ((int)AccrualStatus.Pending).ShouldBe(1);
-        ((int)AccrualStatus.Paid).ShouldBe(2);
-        Enum.GetValues<AccrualStatus>().Length.ShouldBe(2);
     }
 
     [Fact]

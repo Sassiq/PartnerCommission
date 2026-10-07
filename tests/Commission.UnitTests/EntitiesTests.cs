@@ -1,3 +1,4 @@
+using System.Globalization;
 using Commission.Domain;
 using Commission.Domain.Entities;
 using PartnerCommission.Contracts;
@@ -34,5 +35,5 @@ public class EntitiesTests
     [InlineData("0.123456789", false)]
     [InlineData("1000000000000000000", false)]
     public void Profit_must_fit_storage_precision(string value, bool expected) =>
-        ProfitValidation.IsValid(decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture)).ShouldBe(expected);
+        ProfitValidation.IsValid(decimal.Parse(value, CultureInfo.InvariantCulture)).ShouldBe(expected);
 }

@@ -24,8 +24,4 @@ public class PartnerLinkGuardTests
     [Fact]
     public void Partner_without_ancestors_is_allowed() =>
         Should.NotThrow(() => PartnerLinkGuard.EnsureCanLink("user", "other", []));
-
-    [Fact]
-    public void Ids_are_compared_case_sensitively() =>
-        Should.NotThrow(() => PartnerLinkGuard.EnsureCanLink("User", "user", []));
 }

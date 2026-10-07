@@ -20,7 +20,7 @@ docker compose up --build
 | Kafka UI (топики, сообщения, dead-letter) | http://localhost:8090 |
 | Сервисы напрямую | Partners `5101` (REST) и `5102` (gRPC), Commission `5201`, Wallet `5301` |
 
-Тесты: `dotnet test`. Интеграционным тестам нужен запущенный Docker, PostgreSQL они поднимают сами через Testcontainers.
+Тесты: `dotnet test`.
 
 Несколько реплик Commission и Wallet запускаются так:
 

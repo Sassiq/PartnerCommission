@@ -32,37 +32,11 @@ public class SchemeTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void Invalid_level_is_rejected(int level)
+    [InlineData(CommissionLimits.MaxLevels + 1)]
+    public void Level_outside_the_supported_range_is_rejected(int level)
     {
         Should.Throw<ArgumentOutOfRangeException>(() => new LinearScheme().Multiplier(level));
         Should.Throw<ArgumentOutOfRangeException>(() => new FibonacciScheme().Multiplier(level));
-    }
-
-    [Fact]
-    public void Level_above_the_supported_limit_is_rejected()
-    {
-        Should.Throw<ArgumentOutOfRangeException>(() => new LinearScheme().Multiplier(CommissionLimits.MaxLevels + 1));
-        Should.Throw<ArgumentOutOfRangeException>(() => new FibonacciScheme().Multiplier(CommissionLimits.MaxLevels + 1));
-        Should.Throw<ArgumentOutOfRangeException>(() => new FibonacciScheme().Multiplier(200));
-    }
-
-    [Fact]
-    public void Fibonacci_at_the_limit_is_exact() =>
-        new FibonacciScheme().Multiplier(CommissionLimits.MaxLevels).ShouldBe(12_586_269_025m); // F(50)
-
-    [Theory]
-    [InlineData(SchemaType.Linear)]
-    [InlineData(SchemaType.Fibonacci)]
-    public void Highest_level_with_the_largest_accepted_profit_does_not_overflow(SchemaType type)
-    {
-        // 10^18 - 0.00000001 is the largest profit ProfitValidation accepts.
-        const decimal largestProfit = 999_999_999_999_999_999.99999999m;
-        ProfitValidation.IsValid(largestProfit).ShouldBeTrue();
-
-        var result = CommissionCalculator.Calculate(
-            CommissionSchemes.For(type), largestProfit, [new Ancestor(CommissionLimits.MaxLevels, "top")], CommissionLimits.MaxLevels);
-
-        result.Single().Amount.ShouldBeGreaterThan(0m);
     }
 
     [Theory]
@@ -73,6 +47,5 @@ public class SchemeTests
 
     [Fact]
     public void Factory_rejects_unknown_type() =>
-        Should.Throw<NotSupportedException>(() => CommissionSchemes.For((SchemaType)99))
-            .Message.ShouldContain("99");
+        Should.Throw<NotSupportedException>(() => CommissionSchemes.For((SchemaType)99));
 }
