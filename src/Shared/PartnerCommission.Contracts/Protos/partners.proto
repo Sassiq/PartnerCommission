@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option csharp_namespace = "PartnerCommission.Contracts.Partners";
+
+package partners.v1;
+
+// Internal synchronous API used by the Commission service.
+service PartnersInternal {
+  // Returns the partner chain above the user: level 1 = direct partner, level 2 = partner's partner, ...
+  rpc GetAncestors (GetAncestorsRequest) returns (GetAncestorsResponse);
+}
+
+message GetAncestorsRequest {
+  string user_external_id = 1;
+  int32 max_levels = 2;
+}
+
+message GetAncestorsResponse {
+  repeated Ancestor ancestors = 1;
+}
+
+message Ancestor {
+  int32 level = 1;
+  string external_id = 2;
+}
